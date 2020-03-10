@@ -1,60 +1,86 @@
-import java.util.ArrayList;
-import java.util.Queue;
-
 public class BetterAI implements IOthelloAI {
 
-    // add a structre for the MINIMAX tree
-    // Tree tree;
+     public GameState result(GameState s, Position position) {
+         GameState newState = new GameState(s.getBoard(), s.getPlayerInTurn());
+         newState.insertToken(position);
+         return newState;
+     }
 
-    // public BetterAI(int size) {
-    //     // build tree with utility functions
-    //     tree = new Tree();
-    //     GameState s = new GameState(size, 1); // generate initial state
-    //     Queue<GameState> states_to_evaluate = new Queue(s); // queue with the initial state
-    //     while (!states_to_evaluate.isEmpty()) {
-    //         GameState currentGameState = states_to_evaluate.remove();
-    //         ArrayList<Position> moves = currentGameState.legalMoves();
-    //         for (Position position : moves) {
-    //             GameState newGameState = currentGameState..insertToken(position);
-    //         }
-    //         if (currentGameState.getPlayerInTurn() == 1) {
-                
-    //         } else {
+     public int utility(GameState s) {
+         int[] tokens = s.countTokens();
+         // Player 1 won, we lost
+         if (tokens[0] > tokens[1]) {
+             return -1;
+         // Player 2 won, that's us
+         } else if (tokens[0] < tokens[1]) {
+             return 1;
+         // Draw
+         } else {
+             return 0;
+         }
+     }
 
-    //         }
-    //     }
-    // }
+    public int maxValue(GameState s) {
 
+        if (s.isFinished()) return utility(s);
 
+        int value;
+        int bestValue = Integer.MIN_VALUE;
+        for (Position move : s.legalMoves()) {
+            value = minValue(result(s, move));
+            if (value > bestValue) bestValue = value;
+        }
+        return bestValue;
+    }
+
+    public int minValue(GameState s) {
+
+        if (s.isFinished()) return utility(s);
+
+        int value;
+        int bestValue = Integer.MAX_VALUE;
+        for (Position move : s.legalMoves()) {
+            value = maxValue(result(s, move));
+            if (value < bestValue) bestValue = value;
+        }
+        return bestValue;
+    }
 
 	public Position decideMove(GameState s) {
-        
-        ArrayList<Position> moves = s.legalMoves();
-        for (Position position : moves) {
-            GameState newGameState = currentGameState.copy().insertToken(position);
-            
+
+        System.out.println("BetterAI moves:");
+
+        int value;
+        int bestValue = Integer.MIN_VALUE;
+        Position bestMove = null;
+        for (Position move : s.legalMoves()) {
+            value = minValue(result(s, move));
+            if (value < bestValue) {
+                bestValue = value;
+                bestMove = move;
+            }
         }
 
+        System.out.println(bestValue);
 
+        return bestMove;
 
-        // if (s.isFinished()) {
-        //     int tokensP1 = s.countTokens()[0];
-        //     int tokensP2 = s.countTokens()[1];
-        //     if (tokensP1 > tokensP2) {
-        //         return -1;
-        //     } 
-        //     else if (tokensP1 < tokensP2) {
-        //         return 1;
-        //     }
-        //     else {
-        //         return 0;
-        //     }
-        // }
-
-
-
-
-
-        return new Position(0, 0);
+         // explore potential future states using MINIMAX
+//        Queue<GameState> states_to_evaluate = new Queue(s); // queue with the initial state
+//        while (!states_to_evaluate.isEmpty()) {
+//            GameState currentGameState = states_to_evaluate.remove();
+//            ArrayList<Position> moves = currentGameState.legalMoves();
+//            // find the move with best utility
+//            for (Position position : moves) {
+//                GameState newGameState =
+//                        new GameState(currentGameState.board, currentGameState.currentPlayer).insertToken(position);
+//
+//            }
+//            if (currentGameState.getPlayerInTurn() == 1) {
+//
+//            } else {
+//
+//            }
+//        }
     }
 }
