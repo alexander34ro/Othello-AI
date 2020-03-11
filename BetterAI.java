@@ -6,6 +6,12 @@ public class BetterAI implements IOthelloAI {
          return newState;
      }
 
+     public GameState noMove(GameState s) {
+        GameState newState = new GameState(s.getBoard(), s.getPlayerInTurn());
+        newState.changePlayer();
+        return newState;
+     }
+
      public int utility(GameState s) {
          int[] tokens = s.countTokens();
          // Player 1 won, we lost
@@ -30,6 +36,9 @@ public class BetterAI implements IOthelloAI {
             value = minValue(result(s, move));
             if (value > bestValue) bestValue = value;
         }
+        if (s.legalMoves().isEmpty()) {
+            bestValue = minValue(noMove(s));
+        }
         return bestValue;
     }
 
@@ -43,6 +52,9 @@ public class BetterAI implements IOthelloAI {
             value = maxValue(result(s, move));
             if (value < bestValue) bestValue = value;
         }
+        if (s.legalMoves().isEmpty()) {
+            bestValue = maxValue(noMove(s));
+        }
         return bestValue;
     }
 
@@ -55,7 +67,8 @@ public class BetterAI implements IOthelloAI {
         Position bestMove = null;
         for (Position move : s.legalMoves()) {
             value = minValue(result(s, move));
-            if (value < bestValue) {
+            System.out.println("value " + value + " Position " + move.row + " " + move.col);
+            if (value > bestValue) {
                 bestValue = value;
                 bestMove = move;
             }
