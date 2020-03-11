@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
 public class BetterAI implements IOthelloAI {
 
      public GameState result(GameState s, Position position) {
@@ -32,7 +36,7 @@ public class BetterAI implements IOthelloAI {
 
         int value;
         int bestValue = Integer.MIN_VALUE;
-        for (Position move : s.legalMoves()) {
+        for (Position move : prioritizeMoves(s)) {
             value = minValue(result(s, move), bestValueforMAX, bestValueforMIN);
             if (value > bestValue) bestValue = value;
             if (value > bestValueforMAX) bestValueforMAX = value;
@@ -53,7 +57,7 @@ public class BetterAI implements IOthelloAI {
 
         int value;
         int bestValue = Integer.MAX_VALUE;
-        for (Position move : s.legalMoves()) {
+        for (Position move : prioritizeMoves(s)) {
             value = maxValue(result(s, move), bestValueforMAX, bestValueforMIN);
             if (value < bestValue) bestValue = value;
             if (value < bestValueforMIN) bestValueforMIN = value;
@@ -77,7 +81,7 @@ public class BetterAI implements IOthelloAI {
         int bestValueforMIN = Integer.MAX_VALUE;
         int bestValue = Integer.MIN_VALUE;
         Position bestMove = null;
-        for (Position move : s.legalMoves()) {
+        for (Position move : prioritizeMoves(s)) {
             value = minValue(result(s, move), bestValueforMAX, bestValueforMIN);
             System.out.println("value " + value + " Position " + move.row + " " + move.col);
             if (value > bestValue) {
@@ -89,23 +93,51 @@ public class BetterAI implements IOthelloAI {
         System.out.println(bestValue);
 
         return bestMove;
+    }
 
-         // explore potential future states using MINIMAX
-//        Queue<GameState> states_to_evaluate = new Queue(s); // queue with the initial state
-//        while (!states_to_evaluate.isEmpty()) {
-//            GameState currentGameState = states_to_evaluate.remove();
-//            ArrayList<Position> moves = currentGameState.legalMoves();
-//            // find the move with best utility
-//            for (Position position : moves) {
-//                GameState newGameState =
-//                        new GameState(currentGameState.board, currentGameState.currentPlayer).insertToken(position);
-//
-//            }
-//            if (currentGameState.getPlayerInTurn() == 1) {
-//
-//            } else {
-//
-//            }
-//        }
+    public double distance(int boardSize, Position p) {
+        int half = boardSize/2;
+        int distanceX = Math.abs(half - p.row);
+        int distanceY = Math.abs(half - p.col);
+        return Math.sqrt((distanceX * distanceX) + (distanceY * distanceY));
+    }
+
+    public double heuristic(int boardSize, Position p) {
+        double cost = distance(boardSize, p);
+        if (isCorner(boardSize, p)) cost = cost - boardSize;
+        return cost;
+    }
+
+    public boolean isCorner(int boardSize, Position p) {
+        int x = p.row;
+        int y = p.col;
+        return ((x == 0 || x == boardSize - 1) && (y == 0 || y == boardSize - 1)); 
+    }
+
+    public boolean isNearlyCorner(int boardSize, Position p) {
+        return false;
+    }
+
+    public ArrayList<Position> prioritizeMoves(GameState s) {
+        
+        Comparator<Position> c = new Comparator<Position>() {
+            
+            public int compare(Position p1, Position p2) {
+                double c1 = heuristic(s.getBoard().length, p1);
+                double c2 = heuristic(s.getBoard().length, p2);
+                if(c1 > c2) return 1;
+                else if (c1 < c2) return -1;
+                return 0;
+            }
+        };
+
+        ArrayList<Position> moves = s.legalMoves();
+        Collections.sort(moves, c);
+        String str = "moves ";
+        for (Position position : moves) {
+            str = str + position + " ";
+        }
+        System.out.println(str);
+        return moves;
     }
 }
