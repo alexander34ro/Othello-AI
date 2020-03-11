@@ -26,34 +26,44 @@ public class BetterAI implements IOthelloAI {
          }
      }
 
-    public int maxValue(GameState s) {
+    public int maxValue(GameState s, int bestValueforMAX, int bestValueforMIN) {
 
         if (s.isFinished()) return utility(s);
 
         int value;
         int bestValue = Integer.MIN_VALUE;
         for (Position move : s.legalMoves()) {
-            value = minValue(result(s, move));
+            value = minValue(result(s, move), bestValueforMAX, bestValueforMIN);
             if (value > bestValue) bestValue = value;
+            if (value > bestValueforMAX) bestValueforMAX = value;
+            if (bestValueforMAX > bestValueforMIN) {
+                //System.out.println("best " + bestValueforMAX + " > " + bestValueforMIN);
+                break;
+            }
         }
         if (s.legalMoves().isEmpty()) {
-            bestValue = minValue(noMove(s));
+            bestValue = minValue(noMove(s), bestValueforMAX, bestValueforMIN);
         }
         return bestValue;
     }
 
-    public int minValue(GameState s) {
+    public int minValue(GameState s, int bestValueforMAX, int bestValueforMIN) {
 
         if (s.isFinished()) return utility(s);
 
         int value;
         int bestValue = Integer.MAX_VALUE;
         for (Position move : s.legalMoves()) {
-            value = maxValue(result(s, move));
+            value = maxValue(result(s, move), bestValueforMAX, bestValueforMIN);
             if (value < bestValue) bestValue = value;
+            if (value < bestValueforMIN) bestValueforMIN = value;
+            if (bestValueforMAX > bestValueforMIN) {
+                //System.out.println("best " + bestValueforMAX + " > " + bestValueforMIN);
+                break;
+            }
         }
         if (s.legalMoves().isEmpty()) {
-            bestValue = maxValue(noMove(s));
+            bestValue = maxValue(noMove(s), bestValueforMAX, bestValueforMIN);
         }
         return bestValue;
     }
@@ -63,10 +73,12 @@ public class BetterAI implements IOthelloAI {
         System.out.println("BetterAI moves:");
 
         int value;
+        int bestValueforMAX = Integer.MIN_VALUE;
+        int bestValueforMIN = Integer.MAX_VALUE;
         int bestValue = Integer.MIN_VALUE;
         Position bestMove = null;
         for (Position move : s.legalMoves()) {
-            value = minValue(result(s, move));
+            value = minValue(result(s, move), bestValueforMAX, bestValueforMIN);
             System.out.println("value " + value + " Position " + move.row + " " + move.col);
             if (value > bestValue) {
                 bestValue = value;
