@@ -2,32 +2,58 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+/**
+ * A better OthelloAI which implements Minimax search algorithm with Alpha-Beta pruning,
+ * evaluation and cut off functions.
+ * @author Alexandru Andrei Ardelean, Anna Liljeberg, Ugne Valionyte
+ * @version 19.3.2020
+ */
 public class BetterAI implements IOthelloAI {
 
     //// Utility stuff here
-    //
+    /**
+     * Represents a move on the board to a given position and has a utility value.
+     */
     public class Move {
         public double utility;
         public Position position;
-
+        /**
+         * Constructs a move consisting of it's target position and utility value.
+         * @param utility The utility value of the position.
+         * @param position Coordinates on the board stored in the Position object.
+         */
         public Move(double utility, Position position) {
             this.utility = utility;
             this.position = position;
         }
     }
-
+     /**
+      * Makes a move by inserting a token on the board and the resulting new game state is returned.
+      * @param s GameState before the new token is inserted.
+      * @param position Position where the new tokens has to be inserted.
+      * @return A new GameState.
+      */
      public GameState result(GameState s, Position position) {
          GameState newState = new GameState(s.getBoard(), s.getPlayerInTurn());
          newState.insertToken(position);
          return newState;
      }
-
+     /**
+      * Changes the player when the current player has no more legal moves.
+      * @param s Current GameState with the player who has no moves.
+      * @return A new GameState with changed player.
+      */
      public GameState noMove(GameState s) {
         GameState newState = new GameState(s.getBoard(), s.getPlayerInTurn());
         newState.changePlayer();
         return newState;
      }
-
+     /**
+      * Returns a utility value for terminal states based on the 
+      * amount of tokens both players have.
+      * @param s Current GameState.
+      * @return -1.0 if player 2 lost, 0 if it's a draw, +1.0 if player 2 won
+      */
      public double utility(GameState s) {
          int[] tokens = s.countTokens();
          // Player 1 won, we lost
@@ -43,7 +69,14 @@ public class BetterAI implements IOthelloAI {
      }
 
      //// Evaluation function starts here
-     //
+     /**
+      * Computes utility value for the moves using coin parity and mobility heuristics, 
+      * given 0.1 and 0.9 weights respectively. Mobility heuristic gives higher values 
+      * for positions which yield more legal moves. Coin parity gives higher values for 
+      * positions which capture more tokens.
+      * @param s Current GameState
+      * @return An average weighted utility value 
+      */
      public double hUtility(GameState s) {
         // number of tokens for each player
         int[] tokens = s.countTokens();
@@ -72,7 +105,15 @@ public class BetterAI implements IOthelloAI {
     }
 
     //// MINIMAX with alpha-beta pruning starts here
-    //
+    /**
+     * Minimax with Alpha-Beta pruning at Max point of view. 
+     * @param s Current GameState
+     * @param position Current Position
+     * @param bestValueforMAX Alpha
+     * @param bestValueforMIN Beta
+     * @param depth Integer denoting the depth of the search tree
+     * @return a Move
+     */
     public Move maxValue(GameState s, Position position, double bestValueforMAX, double bestValueforMIN, int depth) {
 
         if (s.isFinished()) return new Move(utility(s), position);
@@ -93,6 +134,15 @@ public class BetterAI implements IOthelloAI {
         return bestMove;
     }
 
+    /**
+     * Minimax with Alpha-Beta pruning at Min point of view.
+     * @param s Current GameState
+     * @param position Current Position
+     * @param bestValueforMAX Alpha
+     * @param bestValueforMIN Beta
+     * @param depth Integer denoting the depth of the search tree
+     * @return a Move
+     */
     public Move minValue(GameState s, Position position, double bestValueforMAX, double bestValueforMIN, int depth) {
 
         if (s.isFinished()) return new Move(utility(s), position);
@@ -121,19 +171,30 @@ public class BetterAI implements IOthelloAI {
 
     //// Moves ordering heuristic starts here
     //
+    /**
+     * Calculates the distance from the center of the board
+     * @param p Position
+     */
     public double distance(int boardSize, Position p) {
         int half = boardSize/2;
         int distanceX = Math.abs(half - p.row);
         int distanceY = Math.abs(half - p.col);
         return Math.sqrt((distanceX * distanceX) + (distanceY * distanceY));
     }
-
+    /**
+     * Calculates path cost
+     * @param p Position
+     */
     public double orderingHeuristic(int boardSize, Position p) {
         double cost = distance(boardSize, p);
         if (isCorner(boardSize, p)) cost = cost - boardSize;
         return cost;
     }
-
+    /**
+     * Checks whether a position is a corner on the game board
+     * @param p Position
+     * @return true if it's a corner, false otherwise
+     */
     public boolean isCorner(int boardSize, Position p) {
         int x = p.row;
         int y = p.col;
@@ -141,6 +202,12 @@ public class BetterAI implements IOthelloAI {
     }
 
     // killer moves heuristic, best moves are tried first
+    /**
+     * Killer moves heuristic. Sorts the moves from having highest utility 
+     * values to having lowest utility values.
+     * @param s Current GameState
+     * @return a sorted list of moves
+     */
     public ArrayList<Position> prioritizeMoves(GameState s) {
         
         Comparator<Position> c = new Comparator<Position>() {
